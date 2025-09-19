@@ -1,0 +1,37 @@
+from pydantic_settings import BaseSettings
+from typing import List
+import os
+
+class Settings(BaseSettings): 
+    
+    # MongoDB
+    DB_URI: str = "mongodb://localhost:27017"
+    DB_NAME: str = "seven_healer_db"
+    
+    # Security
+    SECRET_KEY: str = "your-secret-key-here"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # Email
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = "atulverma2861@gmail.com"
+    SMTP_PASSWORD: str = "iprs nibw chif rktr"
+    
+    
+    # CORS
+    ALLOWED_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://sevenhealerconsultants.in"
+    ]
+
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+
+# Create settings instance
+settings = Settings()
+
