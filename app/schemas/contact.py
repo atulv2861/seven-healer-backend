@@ -8,4 +8,4 @@ class EmailRequestSchema(BaseModel):
     name: str
     contact: str
     address: str
-    company_name: str
+    

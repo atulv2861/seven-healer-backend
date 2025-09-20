@@ -13,7 +13,6 @@ async def send_email(request: EmailRequestSchema):
                     "name": request.name,
                     "phone": request.contact,
                     "address": request.address,
-                    "company": request.company_name,
                     "message": request.message,                    
                 },
             )
