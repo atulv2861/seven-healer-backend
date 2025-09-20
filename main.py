@@ -23,13 +23,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.get("/")
+def startup():
+    return {"message": "Server is running"}
 
 # Include all routes
 app.include_router(router)
 
-app.get("/")
-def startup():
-    return {"message": "Server is running"}
+
 
 if __name__ == "__main__":
     import uvicorn
