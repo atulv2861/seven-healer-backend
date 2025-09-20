@@ -7,4 +7,4 @@ from app.services import contact
 router = APIRouter()
 
 # Include API routes
-router.include_router(contact.router, prefix="/api/v1/contact", tags=["Contact"])
+router.include_router(contact.router, prefix="/api/v1", tags=["Contact"])
