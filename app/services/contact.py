@@ -7,6 +7,8 @@ router = APIRouter()
 @router.post("/send/email")
 async def send_email(request: EmailRequestSchema):
     try:
+        print(request)
+        print("=================================================11")
         email_content = get_email_template(
                 "email_temp.html",
                 {
@@ -16,6 +18,7 @@ async def send_email(request: EmailRequestSchema):
                     "message": request.message,                    
                 },
             )
+        print("=================================================22")
         # Send email to company
         send_simple_email(
             recipients=request.email,
@@ -23,6 +26,7 @@ async def send_email(request: EmailRequestSchema):
             body=email_content,
             content_type="html",
         ) 
+        print("=================================================33")
         confirmation_content = get_email_template(
             "comfirmation_temp.html",
             {
@@ -31,6 +35,7 @@ async def send_email(request: EmailRequestSchema):
                 "message": request.message,
             },
         )
+        print("=================================================44")
         # Send email to client
         send_simple_email(
             recipients=request.email,

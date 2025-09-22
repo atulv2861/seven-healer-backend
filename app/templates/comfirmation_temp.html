@@ -1,45 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Consultation Request Received</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultation Request Received - Seven Healer</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4); }
+      50% { box-shadow: 0 15px 35px -5px rgba(59, 130, 246, 0.6); }
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+    }
+  </style>
 </head>
-<body style="margin:0; padding:0; font-family:Arial, sans-serif; background-color:#f5f7fa;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1e3a8a; color:#ffffff; padding:20px 0;">
-    <tr>
-      <td align="center" style="font-size:24px; font-weight:bold;">Seven Healer</td>
-    </tr>
-  </table>
+<body style="margin:0; padding:0; font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); line-height: 1.6;">
 
-  <table width="100%" cellpadding="20" cellspacing="0" style="background-color:#ffffff; max-width:600px; margin:20px auto; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+  <!-- CONTAINER -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="min-height: 100vh;">
     <tr>
-      <td style="font-size:16px; color:#333333;">
-        <p>Hi <b>{{name}}</b>,</p>
-        <p>Thank you for contacting <b>Seven Healer</b>. We have received your request for a free consultation and our team will get back to you shortly.</p>
-        <p>Here’s a summary of your request:</p>
-
-        <table width="100%" cellpadding="8" cellspacing="0" style="border:1px solid #ddd; border-radius:6px; margin:15px 0;">
-          <tr style="background-color:#f0f4ff;">
-            <td><b>Subject:</b></td>
-            <td>{{subject}}</td>
-          </tr>
+      <td align="center" style="padding: 40px 20px;">
+        
+        <!-- MAIN CARD -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 680px; background: #ffffff; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05); overflow: hidden;">
+          
+          <!-- HEADER SECTION -->
           <tr>
-            <td><b>Message:</b></td>
-            <td>{{message}}</td>
+            <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%); padding: 40px 30px; text-align: center; position: relative;">
+              
+              <!-- Title -->
+              <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">
+                Request Confirmed
+              </h1>
+              <p style="margin: 8px 0 0; font-size: 16px; color: rgba(255, 255, 255, 0.9); font-weight: 400;">
+                Healthcare Infrastructure Consultation
+              </p>
+            </td>
           </tr>
+
+          <!-- CONTENT SECTION -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              
+              <!-- Status Badge -->
+              <div style="display: inline-block; background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%); color: white; padding: 10px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); animation: float 3s ease-in-out infinite;">
+                ✅ Request Successfully Received
+              </div>
+
+              <!-- Greeting -->
+              <p style="font-size: 18px; color: #1f2937; margin: 0 0 8px; font-weight: 600;">
+                Hi {{name}},
+              </p>
+              <p style="color: #6b7280; margin: 0 0 32px; font-size: 16px;">
+                Thank you for contacting <strong>Seven Healer</strong>. We have received your request for a free consultation and our team will get back to you shortly.
+              </p>
+
+              <!-- Request Summary -->
+              <p style="font-size: 18px; color: #1f2937; margin: 0 0 16px; font-weight: 600;">
+                Request Summary
+              </p>
+
+              <!-- Details Cards -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
+                
+                <!-- Subject Card -->
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);" class="card-hover">
+                      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: #1e40af; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Subject</span>
+                      </div>
+                      <p style="margin: 0; font-size: 18px; color: #1f2937; font-weight: 500;">{{subject}}</p>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Message Card -->
+                <tr>
+                  <td>
+                    <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);" class="card-hover">
+                      <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <span style="font-weight: 600; color: #1e40af; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Your Message</span>
+                      </div>
+                      <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                        <p style="margin: 0; font-size: 16px; color: #374151; line-height: 1.6;">{{message}}</p>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+              </table>
+
+              <!-- Next Steps -->
+              <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #0ea5e9; border-radius: 16px; padding: 20px; margin-bottom: 32px;">
+                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                  <span style="font-size: 20px; margin-right: 8px;">📋</span>
+                  <span style="font-weight: 600; color: #0c4a6e; font-size: 16px;">What Happens Next?</span>
+                </div>
+                <ul style="margin: 0; padding-left: 20px; color: #0c4a6e; font-size: 14px; line-height: 1.6;">
+                  <li>Our healthcare infrastructure experts will review your request</li>
+                  <li>We'll contact you within 24 hours to discuss your needs</li>
+                  <li>We'll schedule a consultation at your convenience</li>
+                </ul>
+              </div>
+
+              <!-- Contact Info -->
+              <div style="text-align: center; margin: 32px 0;">
+                <p style="color: #6b7280; margin: 0 0 16px; font-size: 16px;">
+                  If you have urgent queries, feel free to reply to this email directly.
+                </p>
+                <p style="margin: 0; color: #1f2937; font-size: 16px; font-weight: 500;">
+                  Warm Regards,<br>
+                  <strong style="color: #1e40af;">Seven Healer Team</strong>
+                </p>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- FOOTER SECTION -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 30px; text-align: center;">
+              <h3 style="margin: 0 0 8px; color: #ffffff; font-size: 20px; font-weight: 600;">Seven Healer</h3>
+              <p style="margin: 0 0 16px; color: #9ca3af; font-size: 14px;">Sustainable Healthcare Infrastructure Solutions</p>
+              <div style="border-top: 1px solid #374151; padding-top: 16px;">
+                <p style="margin: 0; color: #6b7280; font-size: 12px; letter-spacing: 0.5px;">
+                  © 2025 Seven Healer | All Rights Reserved
+                </p>
+              </div>
+            </td>
+          </tr>
+          
         </table>
 
-        <p>We’ll reach out to you soon. If you have urgent queries, feel free to reply to this email directly.</p>
-
-        <p style="margin-top:20px;">Warm Regards,<br><b>Seven Healer Team</b></p>
       </td>
     </tr>
   </table>
 
-  <table width="100%" cellpadding="15" cellspacing="0" style="background-color:#1e3a8a; color:#ffffff; margin-top:20px;">
-    <tr>
-      <td align="center" style="font-size:12px;">© 2025 Seven Healer | All Rights Reserved</td>
-    </tr>
-  </table>
 </body>
 </html>
