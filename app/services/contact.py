@@ -1,45 +1,99 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Form, File, UploadFile, Request
+from typing import List, Optional, Union
 from app.schemas.contact import EmailRequestSchema
-from app.utils import get_email_template, send_simple_email
+from app.utils import get_email_template, send_simple_email, validate_file_size
 
 router = APIRouter()
 
 @router.post("/send/email")
-async def send_email(request: EmailRequestSchema):
+async def send_email(
+    request: Request,
+    email: str = Form(...),
+    subject: str = Form(...),
+    message: str = Form(...),
+    name: str = Form(...),
+    contact: str = Form(...),
+    address: str = Form(...),
+    files: List[UploadFile] = File(None)
+):
     try:
-        print(request)
-        print("=================================================11")
+        # Check if request is JSON or form data
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/json" in content_type:
+            # Handle JSON request
+            json_data = await request.json()
+            email = json_data.get("email")
+            subject = json_data.get("subject")
+            message = json_data.get("message")
+            name = json_data.get("name")
+            contact = json_data.get("contact")
+            address = json_data.get("address")
+            files = None  # No files in JSON request
+        else:
+            # Handle form data request
+            # Form data is already extracted by FastAPI parameters
+            pass
+        
+        # Validate required fields (form fields are already mandatory, but check JSON fields)
+        if "application/json" in content_type:
+            if not all([email, subject, message, name, contact, address]):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Missing required fields: email, subject, message, name, contact, address"
+                )
+        
+        # Validate file sizes if files are provided
+        if files:
+            for file in files:
+                if file and file.filename:
+                    if not validate_file_size(file, 10):  # 10MB limit
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"File {file.filename} is too large. Maximum size is 10MB."
+                        )
+        
+        # Prepare file information for template
+        file_info = ""
+        if files:
+            file_names = [file.filename for file in files if file and file.filename]
+            if file_names:
+                file_info = f"<br><strong>Attached Files:</strong> {', '.join(file_names)}"
+        
+        # Prepare email content for company notification
         email_content = get_email_template(
                 "email_temp.html",
                 {
-                    "name": request.name,
-                    "phone": request.contact,
-                    "address": request.address,
-                    "message": request.message,                    
+                    "name": name,
+                    "phone": contact,
+                    "address": address,
+                    "message": message + file_info,                    
                 },
-            )
-        print("=================================================22")
-        # Send email to company
+            )       
+        
+        # Send email to company with attachments
         send_simple_email(
-            recipients=request.email,
-            subject=request.subject,
+            recipients=email,
+            subject=subject,
             body=email_content,
             content_type="html",
-        ) 
-        print("=================================================33")
+            attachments=files
+        )
+        
+        # Prepare confirmation email for client
         confirmation_content = get_email_template(
             "comfirmation_temp.html",
             {
-                "name": request.name,
-                "subject": request.subject,
-                "message": request.message,
+                "name": name,
+                "subject": subject,
+                "message": message,
             },
         )
-        print("=================================================44")
-        # Send email to client
+        
+        # Send confirmation email to client (without attachments)
         send_simple_email(
-            recipients=request.email,
-            subject=request.subject,
+            recipients=email,
+            subject=f"Confirmation: {subject}",
             body=confirmation_content,
             content_type="html",
         )
