@@ -53,13 +53,6 @@ async def send_email(
                             detail=f"File {file.filename} is too large. Maximum size is 10MB."
                         )
         
-        # Prepare file information for template
-        file_info = ""
-        if files:
-            file_names = [file.filename for file in files if file and file.filename]
-            if file_names:
-                file_info = f"<br><strong>Attached Files:</strong> {', '.join(file_names)}"
-        
         # Prepare email content for company notification
         email_content = get_email_template(
                 "email_temp.html",
@@ -67,7 +60,7 @@ async def send_email(
                     "name": name,
                     "phone": contact,
                     "address": address,
-                    "message": message + file_info,                    
+                    "message": message,                    
                 },
             )       
         
