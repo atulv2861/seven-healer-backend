@@ -23,15 +23,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Seven Healer counsultancy Pvt.Ltd API",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "status": "Server is running"
-    }
-
 # Include all routes
 app.include_router(router)
 

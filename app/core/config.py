@@ -10,8 +10,12 @@ class Settings(BaseSettings):
     
     # Security
     SECRET_KEY: str = "your-secret-key-here"
+    JWT_SECRET_KEY: str = "your-jwt-secret-key-here"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    SUPERUSER_ID: str = "superuser123"
+    SUPERUSER_EMAIL: str = "admin@sevenhealerconsultants.in"
+    SUPERUSER_PASSWORD: str = "admin123"
     
     # Email
     SMTP_SERVER: str = "smtp.gmail.com"
