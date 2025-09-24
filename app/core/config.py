@@ -1,8 +1,8 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 import os
 
-class Settings(BaseSettings): 
+class BaseConfig(BaseSettings): 
     
     # MongoDB
     DB_URI: str = "mongodb://localhost:27017"
@@ -32,10 +32,21 @@ class Settings(BaseSettings):
     ]
 
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    # class Config:
+    #     env_file = ".env"
+    #     case_sensitive = True
 
 # Create settings instance
-settings = Settings()
+#settings = Settings()
+class DevConfig(BaseConfig):
+    model_config = SettingsConfigDict(env_file="env/.env.dev", extra="ignore")
+
+
+class ProdConfig(BaseConfig):
+    model_config = SettingsConfigDict(env_file="env/.env.prod", extra="ignore")
+
+
+configs = {"dev": DevConfig, "prod": ProdConfig}
+
+config: BaseConfig = configs[os.environ.get("ENV", "dev").lower()]()
 

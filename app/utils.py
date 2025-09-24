@@ -10,7 +10,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from fastapi import HTTPException, UploadFile
-from app.core import config
+from app.core.config import config
 from app.models.users import Users
 from app.enum import UserRoles
 from passlib.context import CryptContext

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from app.core.config import settings
+from app.core.config import config
 from app.services import contact, auth, projects, openings
 from mongoengine import connect
-connect(settings.DB_NAME, host=settings.DB_URI)
+connect(config.DB_NAME, host=config.DB_URI)
 # Create main router
 router = APIRouter()
 
