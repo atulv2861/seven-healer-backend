@@ -32,12 +32,6 @@ class BaseConfig(BaseSettings):
     ]
 
     
-    # class Config:
-    #     env_file = ".env"
-    #     case_sensitive = True
-
-# Create settings instance
-#settings = Settings()
 class DevConfig(BaseConfig):
     model_config = SettingsConfigDict(env_file="env/.env.dev", extra="ignore")
 

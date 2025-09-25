@@ -73,7 +73,7 @@ async def signup(user_data: UserSignupSchema):
             password=hashed_password,
             phone=user_data.phone,
             role=user_data.role,
-            is_active=True
+            is_active=False
         )
         
         new_user.save()
@@ -112,6 +112,17 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
                 detail="Invalid email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        
+        # Check if user is admin and active
+        if isinstance(user, dict):  # Superuser - always allow
+            pass  # Superuser can always login
+        else:  # Regular user - check role and status
+            if user.role != UserRoles.ADMIN or not user.is_active:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied. Only active admin users can login.",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
         
         # Create access token
         access_token = create_access_token(subject=user.get("email") if isinstance(user, dict) else user.email)

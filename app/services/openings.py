@@ -31,9 +31,19 @@ def convert_key_responsibilities_to_embedded(responsibilities_data):
     """Convert Pydantic schema to MongoEngine embedded documents"""
     embedded_responsibilities = []
     for resp in responsibilities_data:
+        # Handle both Pydantic model objects and dictionaries
+        if hasattr(resp, 'category'):
+            # Pydantic model object
+            category = resp.category
+            items = resp.items
+        else:
+            # Dictionary object
+            category = resp['category']
+            items = resp['items']
+        
         embedded_resp = KeyResponsibilityItem(
-            category=resp.category,
-            items=resp.items
+            category=category,
+            items=items
         )
         embedded_responsibilities.append(embedded_resp)
     return embedded_responsibilities
@@ -143,44 +153,17 @@ async def create_job_opening(
 @router.get("/", response_model=JobOpeningListResponseSchema)
 async def get_job_openings(
     page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    job_type: Optional[str] = Query(None, description="Filter by job type"),
-    company: Optional[str] = Query(None, description="Filter by company"),
-    search: Optional[str] = Query(None, description="Search in title and description"),
-    active_only: bool = Query(True, description="Show only active jobs")
+    limit: int = Query(10, ge=1, le=100, description="Items per page")
 ):
     """
-    Get all job openings with pagination and filtering (Public access)
+    Get all job openings with pagination (Public access)
     """
     try:
-        # Build query filters
-        query_filters = {}
-        
-        if active_only:
-            query_filters['is_active'] = 'Active'
-        
-        if status and status in VALID_STATUSES:
-            query_filters['is_active'] = status
-        
-        if job_type and job_type in VALID_JOB_TYPES:
-            query_filters['type'] = job_type
-        
-        if company:
-            query_filters['company__icontains'] = company
-        
-        if search:
-            query_filters['$or'] = [
-                {'title__icontains': search},
-                {'description__icontains': search},
-                {'overview__icontains': search}
-            ]
-        
         # Calculate pagination
         skip = (page - 1) * limit
         
-        # Get job openings with filters
-        jobs_query = JobOpening.objects(**query_filters)
+        # Get job openings
+        jobs_query = JobOpening.objects()
         total_jobs = jobs_query.count()
         
         jobs = jobs_query.skip(skip).limit(limit).order_by('-created_at')

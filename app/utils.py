@@ -93,7 +93,7 @@ def get_current_user(token: str):
         # Get regular user
         user = Users.objects(email=email).first()
         return user
-    except jwt.PyJWTError:
+    except jwt.JWTError:
         return None
 
 def get_email_template(filename, context):
