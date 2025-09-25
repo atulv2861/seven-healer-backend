@@ -1,6 +1,7 @@
-from mongoengine import Document, StringField, IntField, ListField, DateTimeField
+from mongoengine import Document, StringField, IntField, ListField, DateTimeField, BinaryField
 from datetime import datetime
 import uuid
+import base64
 
 class Projects(Document):
     id = StringField(primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -12,7 +13,8 @@ class Projects(Document):
     status = StringField(required=True, max_length=50, choices=["Completed", "In Progress", "Planning", "On Hold"])
     description = StringField(required=True, max_length=1000)
     features = ListField(StringField(), default=list)
-    images = StringField(max_length=500)  # URL or path to image
+    image = StringField()  # Single base64 encoded image
+    image_name = StringField()  # Original image name
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)
     
@@ -20,6 +22,34 @@ class Projects(Document):
         'collection': 'projects',
         'indexes': ['title', 'client', 'status', 'created_at']
     }
+    
+    def set_image(self, image_data, image_name):
+        """Set a base64 encoded image for the project"""
+        # Ensure image_data is base64 encoded
+        if isinstance(image_data, bytes):
+            image_data = base64.b64encode(image_data).decode('utf-8')
+        
+        self.image = image_data
+        self.image_name = image_name
+    
+    def get_image(self):
+        """Get image data"""
+        if self.image:
+            return {
+                'data': self.image,
+                'name': self.image_name or 'project_image'
+            }
+        return None
+    
+    def remove_image(self):
+        """Remove image"""
+        self.image = None
+        self.image_name = None
+    
+    def has_image(self):
+        """Check if project has an image"""
+        return bool(self.image)
+    
     
     def save(self, *args, **kwargs):
         """Override save to update the updated_at field"""

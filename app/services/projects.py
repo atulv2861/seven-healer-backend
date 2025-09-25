@@ -57,7 +57,8 @@ async def create_project(
             status=project_data.status,
             description=project_data.description,
             features=project_data.features,
-            images=project_data.images
+            image=project_data.image,
+            image_name=project_data.image_name
         )
         
         new_project.save()
@@ -72,7 +73,8 @@ async def create_project(
             status=new_project.status,
             description=new_project.description,
             features=new_project.features,
-            images=new_project.images,
+            image=new_project.image,
+            image_name=new_project.image_name,
             created_at=new_project.created_at,
             updated_at=new_project.updated_at
         )
@@ -134,7 +136,8 @@ async def get_projects(
                 status=project.status,
                 description=project.description,
                 features=project.features,
-                images=project.images,
+                image=project.image,
+                image_name=project.image_name,
                 created_at=project.created_at,
                 updated_at=project.updated_at
             ))
@@ -176,7 +179,8 @@ async def get_project(project_id: str):
             status=project.status,
             description=project.description,
             features=project.features,
-            images=project.images,
+            image=project.image,
+            image_name=project.image_name,
             created_at=project.created_at,
             updated_at=project.updated_at
         )
@@ -239,7 +243,8 @@ async def update_project(
             status=project.status,
             description=project.description,
             features=project.features,
-            images=project.images,
+            image=project.image,
+            image_name=project.image_name,
             created_at=project.created_at,
             updated_at=project.updated_at
         )

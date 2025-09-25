@@ -11,7 +11,8 @@ class ProjectBaseSchema(BaseModel):
     status: str = Field(..., description="Project status")
     description: str = Field(..., max_length=1000, description="Project description")
     features: List[str] = Field(default_factory=list, description="Project features")
-    images: Optional[str] = Field(None, max_length=500, description="Project image URL/path")
+    image: Optional[str] = Field(None, description="Base64 encoded image")
+    image_name: Optional[str] = Field(None, description="Original image name")
 
 class ProjectCreateSchema(ProjectBaseSchema):
     pass
@@ -25,7 +26,8 @@ class ProjectUpdateSchema(BaseModel):
     status: Optional[str] = Field(None)
     description: Optional[str] = Field(None, max_length=1000)
     features: Optional[List[str]] = Field(None)
-    images: Optional[str] = Field(None, max_length=500)
+    image: Optional[str] = Field(None, description="Base64 encoded image")
+    image_name: Optional[str] = Field(None, description="Original image name")
 
 class ProjectResponseSchema(ProjectBaseSchema):
     id: str
