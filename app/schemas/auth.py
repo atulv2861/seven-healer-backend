@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime
 from app.enum import UserRoles
 
 class UserSignupSchema(BaseModel):
@@ -22,6 +23,8 @@ class UserResponseSchema(BaseModel):
     phone: str
     role: UserRoles
     is_active: bool = True
+    created_at: datetime
+    updated_at: datetime
 
 class TokenResponseSchema(BaseModel):
     access_token: str
@@ -30,4 +33,21 @@ class TokenResponseSchema(BaseModel):
 
 class TokenDataSchema(BaseModel):
     email: Optional[str] = None
+
+class UserUpdateSchema(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    role: Optional[UserRoles] = None
+    is_active: Optional[bool] = None
+
+class UserPasswordUpdateSchema(BaseModel):
+    new_password: str
+
+class UserListResponseSchema(BaseModel):
+    users: List[UserResponseSchema]
+    total: int
+    page: int
+    limit: int
 
