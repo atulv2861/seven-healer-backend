@@ -5,7 +5,8 @@ import os
 class BaseConfig(BaseSettings): 
     
     # MongoDB
-    DB_URI: str = "mongodb://localhost:27017"
+    #DB_URI: str = "mongodb://localhost:27017"
+    DB_URI:str="mongodb+srv://seven_healer:yWFIagwohDhf9Ccp@cluster0.hkj12v6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
     DB_NAME: str = "seven_healer_db"
     
     # Security
