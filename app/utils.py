@@ -1,13 +1,100 @@
 
 import os
 import smtplib
-import logging
+import re
+from datetime import datetime, timedelta, timezone
+from jose import jwt
+from fastapi.security import OAuth2PasswordBearer, HTTPBasic, HTTPBasicCredentials
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from fastapi import HTTPException, UploadFile
-from app.core import config
+from app.core.config import config
+from app.models.users import Users
+from app.enum import UserRoles
+from passlib.context import CryptContext
+
+
+
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+httpBasic = HTTPBasic()
+class OTPOAuth2PasswordBearer(OAuth2PasswordBearer):
+    pass
+
+
+class PasswordOAuth2PasswordBearer(OAuth2PasswordBearer):
+    pass
+
+
+password_oauth2_scheme = PasswordOAuth2PasswordBearer(tokenUrl="auth/login")
+otp_oauth2_scheme = OTPOAuth2PasswordBearer(tokenUrl="auth/verify-otp")
+
+
+superUser = {
+    "id": config.SUPERUSER_ID,
+    "profile": {"firstName": "Super", "lastName": "User", "avatar": "None"},
+    "name": "SuperUser",
+    "role": UserRoles.ADMIN.value,
+    "email": config.SUPERUSER_EMAIL,
+}
+
+
+def get_hashed_password(password: str) -> str:
+    return password_context.hash(password)
+
+def verify_password(password: str, hashed_pass: str) -> bool:
+    return password_context.verify(password, hashed_pass)
+
+
+def create_access_token(subject: str, expires_delta: int | None = None) -> str:
+    if expires_delta is not None:
+        expires_delta = datetime.now(timezone.utc) + expires_delta
+    else:
+        expires_delta = datetime.now(timezone.utc) + timedelta(
+            minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+
+    to_encode = {"exp": expires_delta, "sub": str(subject)}
+    encoded_jwt = jwt.encode(to_encode, config.JWT_SECRET_KEY, config.ALGORITHM)
+    return encoded_jwt
+
+def authenticate_user(email: str, password: str):
+    """Authenticate user with email and password"""
+    # Check superuser first
+    if email == config.SUPERUSER_EMAIL and password == config.SUPERUSER_PASSWORD:
+        return superUser
+    
+    # Check regular users
+    user = Users.objects(email=email.lower()).first()
+    if not user:
+        return False
+    
+    if not user.is_active:
+        return False
+    
+    if verify_password(password, user.password):
+        return user
+    return False
+
+def get_current_user(token: str):
+    """Get current user from JWT token"""
+    try:
+        payload = jwt.decode(token, config.JWT_SECRET_KEY, algorithms=[config.ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            return None
+        
+        # Check if it's superuser
+        if email == config.SUPERUSER_EMAIL:
+            return superUser
+        
+        # Get regular user
+        user = Users.objects(email=email).first()
+        return user
+    except jwt.JWTError:
+        return None
 
 def get_email_template(filename, context):
     try:

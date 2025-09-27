@@ -1,17 +1,22 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 import os
 
-class Settings(BaseSettings): 
+class BaseConfig(BaseSettings): 
     
     # MongoDB
-    DB_URI: str = "mongodb://localhost:27017"
+    #DB_URI: str = "mongodb://localhost:27017"
+    DB_URI:str="mongodb+srv://seven_healer:yWFIagwohDhf9Ccp@cluster0.hkj12v6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
     DB_NAME: str = "seven_healer_db"
     
     # Security
     SECRET_KEY: str = "your-secret-key-here"
+    JWT_SECRET_KEY: str = "your-jwt-secret-key-here"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    SUPERUSER_ID: str = "superuser123"
+    SUPERUSER_EMAIL: str = "admin@sevenhealerconsultants.in"
+    SUPERUSER_PASSWORD: str = "admin123"
     
     # Email
     SMTP_SERVER: str = "smtp.gmail.com"
@@ -28,10 +33,15 @@ class Settings(BaseSettings):
     ]
 
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+class DevConfig(BaseConfig):
+    model_config = SettingsConfigDict(env_file="env/.env.dev", extra="ignore")
 
-# Create settings instance
-settings = Settings()
+
+class ProdConfig(BaseConfig):
+    model_config = SettingsConfigDict(env_file="env/.env.prod", extra="ignore")
+
+
+configs = {"dev": DevConfig, "prod": ProdConfig}
+
+config: BaseConfig = configs[os.environ.get("ENV", "dev").lower()]()
 
