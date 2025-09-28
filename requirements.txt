@@ -8,7 +8,7 @@ python-multipart
 python-jose[cryptography]
 pycryptodome
 passlib
-bcrypt
+bcrypt==4.3.0
 email-validator
 
 
