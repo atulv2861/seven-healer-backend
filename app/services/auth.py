@@ -59,6 +59,13 @@ async def signup(user_data: UserSignupSchema):
                 detail="Invalid phone number format"
             )
         
+        # Validate password length
+        if len(user_data.password.encode('utf-8')) > 72:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password cannot be longer than 72 bytes. Please use a shorter password."
+            )
+        
         # Check if user already exists
         existing_user = Users.objects(email=user_data.email.lower()).first()
         if existing_user:
@@ -456,6 +463,13 @@ async def update_user_password(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Password must be at least 6 characters long"
+            )
+        
+        # Validate password length (bcrypt limit)
+        if len(password_data.new_password.encode('utf-8')) > 72:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password cannot be longer than 72 bytes. Please use a shorter password."
             )
         
         # Hash new password

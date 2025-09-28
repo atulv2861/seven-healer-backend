@@ -42,9 +42,15 @@ superUser = {
 
 
 def get_hashed_password(password: str) -> str:
+    # bcrypt has a 72-byte limit for passwords, so truncate if necessary
+    if len(password.encode('utf-8')) > 72:
+        password = password[:72]
     return password_context.hash(password)
 
 def verify_password(password: str, hashed_pass: str) -> bool:
+    # bcrypt has a 72-byte limit for passwords, so truncate if necessary
+    if len(password.encode('utf-8')) > 72:
+        password = password[:72]
     return password_context.verify(password, hashed_pass)
 
 
