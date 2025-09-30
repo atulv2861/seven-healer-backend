@@ -149,7 +149,7 @@ async def create_job_opening(
 @router.get("/", response_model=JobOpeningListResponseSchema)
 async def get_job_openings(
     page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page")
+    limit: int = Query(5, ge=1, le=100, description="Items per page")
 ):
     """
     Get all job openings with pagination (Public access)
