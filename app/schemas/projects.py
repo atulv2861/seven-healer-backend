@@ -2,6 +2,13 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
+class ProjectDetailsSchema(BaseModel):
+    heading: str = Field(..., description="Detail heading")
+    description: str = Field(..., description="Detail description")
+    
+    class Config:
+        from_attributes = True
+
 class ProjectBaseSchema(BaseModel):
     title: str = Field(..., max_length=200, description="Project title")
     location: str = Field(..., max_length=100, description="Project location")
@@ -13,6 +20,7 @@ class ProjectBaseSchema(BaseModel):
     features: List[str] = Field(default_factory=list, description="Project features")
     image: Optional[str] = Field(None, description="Base64 encoded image")
     image_name: Optional[str] = Field(None, description="Original image name")
+    details: List[ProjectDetailsSchema] = Field(default_factory=list, description="Project details")
 
 class ProjectCreateSchema(ProjectBaseSchema):
     pass
@@ -28,6 +36,7 @@ class ProjectUpdateSchema(BaseModel):
     features: Optional[List[str]] = Field(None)
     image: Optional[str] = Field(None, description="Base64 encoded image")
     image_name: Optional[str] = Field(None, description="Original image name")
+    details: Optional[List[ProjectDetailsSchema]] = Field(None, description="Project details")
 
 class ProjectResponseSchema(ProjectBaseSchema):
     id: str

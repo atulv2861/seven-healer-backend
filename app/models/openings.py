@@ -20,8 +20,6 @@ class JobOpening(Document):
     qualifications = ListField(StringField(), required=True)
     remuneration = StringField(required=True, max_length=200)
     why_join_us = StringField(required=True, max_length=2000)
-    requirements = ListField(StringField(), default=list)
-    responsibilities = ListField(StringField(), default=list)
     is_active = StringField(default="Active", choices=["Active", "Inactive", "Closed", "Draft"])
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)

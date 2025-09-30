@@ -5,7 +5,8 @@ from app.schemas.projects import (
     ProjectCreateSchema, 
     ProjectUpdateSchema, 
     ProjectResponseSchema,
-    ProjectListResponseSchema
+    ProjectListResponseSchema,
+    ProjectDetailsSchema
 )
 from app.services.auth import get_current_user_dependency
 from app.enum import UserRoles
@@ -47,6 +48,14 @@ async def create_project(
                 detail=f"Invalid status. Must be one of: {', '.join(VALID_STATUSES)}"
             )
         
+        # Convert schema details to model details
+        model_details = []
+        for detail in project_data.details:
+            model_details.append(Projects.Details(
+                heading=detail.heading,
+                description=detail.description
+            ))
+        
         # Create new project
         new_project = Projects(
             title=project_data.title,
@@ -58,7 +67,8 @@ async def create_project(
             description=project_data.description,
             features=project_data.features,
             image=project_data.image,
-            image_name=project_data.image_name
+            image_name=project_data.image_name,
+            details=model_details
         )
         
         new_project.save()
@@ -75,6 +85,7 @@ async def create_project(
             features=new_project.features,
             image=new_project.image,
             image_name=new_project.image_name,
+            details=new_project.details,
             created_at=new_project.created_at,
             updated_at=new_project.updated_at
         )
@@ -87,18 +98,82 @@ async def create_project(
             detail=f"Error creating project: {str(e)}"
         )
 
-@router.get("/", response_model=ProjectListResponseSchema)
-async def get_projects(
+@router.get("/public", response_model=ProjectListResponseSchema)
+async def get_projects_public(
     page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    client: Optional[str] = Query(None, description="Filter by client"),
-    search: Optional[str] = Query(None, description="Search in title and description")
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),   
 ):
     """
     Get all projects with pagination and filtering (Public access)
     """
     try:
+        # Build query filters
+        query_filters = {}
+        
+        
+        query_filters['status'] = "Completed"
+        # Calculate pagination
+        skip = (page - 1) * limit
+        
+        # Get projects with filters
+        projects_query = Projects.objects(**query_filters)
+        total_projects = projects_query.count()
+        
+        projects = projects_query.skip(skip).limit(limit).order_by('-created_at')
+        
+        # Convert to response format
+        project_list = []
+        for project in projects:
+            project_list.append(ProjectResponseSchema(
+                id=str(project.id),
+                title=project.title,
+                location=project.location,
+                beds=project.beds,
+                area=project.area,
+                client=project.client,
+                status=project.status,
+                description=project.description,
+                features=project.features,
+                image=project.image,
+                image_name=project.image_name,
+                details=project.details,
+                created_at=project.created_at,
+                updated_at=project.updated_at
+            ))
+        
+        return ProjectListResponseSchema(
+            projects=project_list,
+            total=total_projects,
+            page=page,
+            limit=limit
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching projects: {str(e)}"
+        )
+
+@router.get("/admin", response_model=ProjectListResponseSchema)
+async def get_projects_admin(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    client: Optional[str] = Query(None, description="Filter by client"),
+    search: Optional[str] = Query(None, description="Search in title and description"),
+    current_user = Depends(get_current_user_dependency)
+):
+    """
+    Get all projects with pagination and filtering (Admin only - includes all projects)
+    """
+    try:
+        # Check if user has admin permissions
+        if not validate_user_permissions(current_user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administrators can access this endpoint"
+            )
+        
         # Build query filters
         query_filters = {}
         
@@ -138,6 +213,7 @@ async def get_projects(
                 features=project.features,
                 image=project.image,
                 image_name=project.image_name,
+                details=project.details,
                 created_at=project.created_at,
                 updated_at=project.updated_at
             ))
@@ -149,6 +225,8 @@ async def get_projects(
             limit=limit
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -181,6 +259,7 @@ async def get_project(project_id: str):
             features=project.features,
             image=project.image,
             image_name=project.image_name,
+            details=project.details,
             created_at=project.created_at,
             updated_at=project.updated_at
         )
@@ -229,7 +308,17 @@ async def update_project(
         # Update fields
         update_data = project_data.dict(exclude_unset=True)
         for field, value in update_data.items():
-            setattr(project, field, value)
+            if field == 'details' and value is not None:
+                # Convert schema details to model details
+                model_details = []
+                for detail in value:
+                    model_details.append(Projects.Details(
+                        heading=detail['heading'],
+                        description=detail['description']
+                    ))
+                setattr(project, field, model_details)
+            else:
+                setattr(project, field, value)
         
         project.save()
         
@@ -245,6 +334,7 @@ async def update_project(
             features=project.features,
             image=project.image,
             image_name=project.image_name,
+            details=project.details,
             created_at=project.created_at,
             updated_at=project.updated_at
         )
@@ -333,3 +423,4 @@ async def get_project_stats(current_user = Depends(get_current_user_dependency))
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching project statistics: {str(e)}"
         )
+
