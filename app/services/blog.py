@@ -246,8 +246,7 @@ async def get_all_blogs_admin(
 
 @router.get("/{blog_id}", response_model=BlogResponseSchema)
 async def get_blog(
-    blog_id: str,
-    current_user = Depends(get_current_user_dependency)
+    blog_id: str,    
 ):
     """
     Get a specific blog post by ID
@@ -262,14 +261,14 @@ async def get_blog(
                 detail="Blog not found"
             )
         
-        # If not admin and blog is not published, return 404
-        if not (isinstance(current_user, dict) or 
-                (hasattr(current_user, 'role') and current_user.role.value == 'admin')):
-            if blog.is_published != 'published':
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Blog not found"
-                )
+        # # If not admin and blog is not published, return 404
+        # if not (isinstance(current_user, dict) or 
+        #         (hasattr(current_user, 'role') and current_user.role.value == 'admin')):
+        #     if blog.is_published != 'published':
+        #         raise HTTPException(
+        #             status_code=status.HTTP_404_NOT_FOUND,
+        #             detail="Blog not found"
+        #         )
         
         return convert_blog_to_response(blog)
         

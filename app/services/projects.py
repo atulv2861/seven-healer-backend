@@ -98,8 +98,64 @@ async def create_project(
             detail=f"Error creating project: {str(e)}"
         )
 
-@router.get("/", response_model=ProjectListResponseSchema)
-async def get_projects(
+@router.get("/public", response_model=ProjectListResponseSchema)
+async def get_projects_public(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),   
+):
+    """
+    Get all projects with pagination and filtering (Public access)
+    """
+    try:
+        # Build query filters
+        query_filters = {}
+        
+        
+        query_filters['status'] = "Completed"
+        # Calculate pagination
+        skip = (page - 1) * limit
+        
+        # Get projects with filters
+        projects_query = Projects.objects(**query_filters)
+        total_projects = projects_query.count()
+        
+        projects = projects_query.skip(skip).limit(limit).order_by('-created_at')
+        
+        # Convert to response format
+        project_list = []
+        for project in projects:
+            project_list.append(ProjectResponseSchema(
+                id=str(project.id),
+                title=project.title,
+                location=project.location,
+                beds=project.beds,
+                area=project.area,
+                client=project.client,
+                status=project.status,
+                description=project.description,
+                features=project.features,
+                image=project.image,
+                image_name=project.image_name,
+                details=project.details,
+                created_at=project.created_at,
+                updated_at=project.updated_at
+            ))
+        
+        return ProjectListResponseSchema(
+            projects=project_list,
+            total=total_projects,
+            page=page,
+            limit=limit
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching projects: {str(e)}"
+        )
+
+@router.get("/admin", response_model=ProjectListResponseSchema)
+async def get_projects_admin(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
     status: Optional[str] = Query(None, description="Filter by status"),
@@ -108,9 +164,16 @@ async def get_projects(
     current_user = Depends(get_current_user_dependency)
 ):
     """
-    Get all projects with pagination and filtering (Public access)
+    Get all projects with pagination and filtering (Admin only - includes all projects)
     """
     try:
+        # Check if user has admin permissions
+        if not validate_user_permissions(current_user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administrators can access this endpoint"
+            )
+        
         # Build query filters
         query_filters = {}
         
@@ -162,6 +225,8 @@ async def get_projects(
             limit=limit
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
