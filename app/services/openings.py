@@ -114,8 +114,6 @@ async def create_job_opening(
             qualifications=job_data.qualifications,
             remuneration=job_data.remuneration,
             why_join_us=job_data.why_join_us,
-            requirements=job_data.requirements,
-            responsibilities=job_data.responsibilities,
             is_active=job_data.is_active
         )
         
@@ -135,8 +133,6 @@ async def create_job_opening(
             qualifications=new_job.qualifications,
             remuneration=new_job.remuneration,
             why_join_us=new_job.why_join_us,
-            requirements=new_job.requirements,
-            responsibilities=new_job.responsibilities,
             is_active=new_job.is_active,
             created_at=new_job.created_at,
             updated_at=new_job.updated_at
@@ -185,8 +181,6 @@ async def get_job_openings(
                 qualifications=job.qualifications,
                 remuneration=job.remuneration,
                 why_join_us=job.why_join_us,
-                requirements=job.requirements,
-                responsibilities=job.responsibilities,
                 is_active=job.is_active,
                 created_at=job.created_at,
                 updated_at=job.updated_at
@@ -233,8 +227,6 @@ async def get_job_opening(job_id: str):
             qualifications=job.qualifications,
             remuneration=job.remuneration,
             why_join_us=job.why_join_us,
-            requirements=job.requirements,
-            responsibilities=job.responsibilities,
             is_active=job.is_active,
             created_at=job.created_at,
             updated_at=job.updated_at
@@ -323,8 +315,6 @@ async def update_job_opening(
             qualifications=job.qualifications,
             remuneration=job.remuneration,
             why_join_us=job.why_join_us,
-            requirements=job.requirements,
-            responsibilities=job.responsibilities,
             is_active=job.is_active,
             created_at=job.created_at,
             updated_at=job.updated_at
@@ -424,8 +414,6 @@ async def update_job_status(
             qualifications=job.qualifications,
             remuneration=job.remuneration,
             why_join_us=job.why_join_us,
-            requirements=job.requirements,
-            responsibilities=job.responsibilities,
             is_active=job.is_active,
             created_at=job.created_at,
             updated_at=job.updated_at
@@ -547,8 +535,6 @@ async def advanced_search_jobs(
                 qualifications=job.qualifications,
                 remuneration=job.remuneration,
                 why_join_us=job.why_join_us,
-                requirements=job.requirements,
-                responsibilities=job.responsibilities,
                 is_active=job.is_active,
                 created_at=job.created_at,
                 updated_at=job.updated_at

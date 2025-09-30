@@ -19,8 +19,6 @@ class JobOpeningBaseSchema(BaseModel):
     qualifications: List[str] = Field(..., description="Required qualifications")
     remuneration: str = Field(..., max_length=200, description="Salary/remuneration details")
     why_join_us: str = Field(..., max_length=2000, description="Why join us section")
-    requirements: List[str] = Field(default_factory=list, description="Additional requirements")
-    responsibilities: List[str] = Field(default_factory=list, description="General responsibilities")
     is_active: str = Field(default="Active", description="Job status")
 
 class JobOpeningCreateSchema(JobOpeningBaseSchema):
@@ -39,8 +37,6 @@ class JobOpeningUpdateSchema(BaseModel):
     qualifications: Optional[List[str]] = Field(None)
     remuneration: Optional[str] = Field(None, max_length=200)
     why_join_us: Optional[str] = Field(None, max_length=2000)
-    requirements: Optional[List[str]] = Field(None)
-    responsibilities: Optional[List[str]] = Field(None)
     is_active: Optional[str] = Field(None)
 
 class JobOpeningResponseSchema(JobOpeningBaseSchema):
