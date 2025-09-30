@@ -154,7 +154,7 @@ async def get_projects_public(
             detail=f"Error fetching projects: {str(e)}"
         )
 
-@router.get("/admin", response_model=ProjectListResponseSchema)
+@router.get("/", response_model=ProjectListResponseSchema)
 async def get_projects_admin(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
