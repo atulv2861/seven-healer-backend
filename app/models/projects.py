@@ -1,9 +1,12 @@
-from mongoengine import Document, StringField, IntField, ListField, DateTimeField, BinaryField
+from mongoengine import Document, StringField, IntField, ListField, DateTimeField, BinaryField, EmbeddedDocumentField, EmbeddedDocument
 from datetime import datetime
 import uuid
 import base64
 
 class Projects(Document):
+    class Details(EmbeddedDocument):
+        heading = StringField(required=True)
+        description = StringField(required=True)
     id = StringField(primary_key=True, default=lambda: str(uuid.uuid4()))
     title = StringField(required=True, max_length=200)
     location = StringField(required=True, max_length=100)
@@ -15,6 +18,7 @@ class Projects(Document):
     features = ListField(StringField(), default=list)
     image = StringField()  # Single base64 encoded image
     image_name = StringField()  # Original image name
+    details = ListField(EmbeddedDocumentField(Details), default=[])
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)
     
