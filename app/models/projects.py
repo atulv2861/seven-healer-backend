@@ -14,7 +14,7 @@ class Projects(Document):
     area = StringField(required=True, max_length=100)
     client = StringField(required=True, max_length=100)
     status = StringField(required=True, max_length=50, choices=["Completed", "In Progress", "Planning", "On Hold"])
-    description = StringField(required=True, max_length=1000)
+    description = StringField(required=True)
     features = ListField(StringField(), default=list)
     image = StringField()  # Single base64 encoded image
     image_name = StringField()  # Original image name
