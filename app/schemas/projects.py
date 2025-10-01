@@ -4,7 +4,7 @@ from datetime import datetime
 
 class ProjectDetailsSchema(BaseModel):
     heading: str = Field(..., description="Detail heading")
-    description: str = Field(..., description="Detail description")
+    description: str = Field(..., max_length=2000, description="Detail description")
     
     class Config:
         from_attributes = True
@@ -16,7 +16,7 @@ class ProjectBaseSchema(BaseModel):
     area: str = Field(..., max_length=100, description="Project area")
     client: str = Field(..., max_length=100, description="Client name")
     status: str = Field(..., description="Project status")
-    description: str = Field(..., max_length=1000, description="Project description")
+    description: str = Field(..., max_length=2000, description="Project description")
     features: List[str] = Field(default_factory=list, description="Project features")
     image: Optional[str] = Field(None, description="Base64 encoded image")
     image_name: Optional[str] = Field(None, description="Original image name")
@@ -32,7 +32,7 @@ class ProjectUpdateSchema(BaseModel):
     area: Optional[str] = Field(None, max_length=100)
     client: Optional[str] = Field(None, max_length=100)
     status: Optional[str] = Field(None)
-    description: Optional[str] = Field(None, max_length=1000)
+    description: Optional[str] = Field(None)
     features: Optional[List[str]] = Field(None)
     image: Optional[str] = Field(None, description="Base64 encoded image")
     image_name: Optional[str] = Field(None, description="Original image name")
