@@ -14,9 +14,13 @@ from app.schemas.auth import (
     TokenResponseSchema,
     UserUpdateSchema,
     UserPasswordUpdateSchema,
-    UserListResponseSchema
+    UserListResponseSchema,
+    SystemStatsSchema
 )
 from app.models.users import Users
+from app.models.blog import Blog
+from app.models.projects import Projects
+from app.models.openings import JobOpening
 from app.enum import UserRoles
 from app.core import config
 import re
@@ -641,4 +645,41 @@ async def delete_user(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting user: {str(e)}"
+        )
+
+@router.get("/stats", response_model=SystemStatsSchema)
+async def get_system_stats(
+    current_user = Depends(get_current_user_dependency)
+):
+    """
+    Get system statistics (Admin only)
+    Returns total counts for blogs, projects, job openings, and users
+    """
+    try:
+        # Check if user has admin permissions
+        if not validate_admin_permissions(current_user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administrators can view system statistics"
+            )
+        
+        # Get counts for each model
+        total_blogs = Blog.objects.count()
+        total_projects = Projects.objects.count()
+        total_openings = JobOpening.objects.count()
+        total_users = Users.objects.count()
+        
+        return SystemStatsSchema(
+            total_blogs=total_blogs,
+            total_projects=total_projects,
+            total_openings=total_openings,
+            total_users=total_users
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching system statistics: {str(e)}"
         )

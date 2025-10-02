@@ -51,3 +51,9 @@ class UserListResponseSchema(BaseModel):
     page: int
     limit: int
 
+class SystemStatsSchema(BaseModel):
+    total_blogs: int
+    total_projects: int
+    total_openings: int
+    total_users: int
+
