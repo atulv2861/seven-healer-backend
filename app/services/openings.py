@@ -1,13 +1,19 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Query
 from typing import List, Optional
-from app.models.openings import JobOpening, KeyResponsibilityItem
+from app.models.openings import JobOpening, KeyResponsibilityItem, JobApplication
 from app.schemas.openings import (
     JobOpeningCreateSchema, 
     JobOpeningUpdateSchema, 
     JobOpeningResponseSchema,
     JobOpeningListResponseSchema,
     JobOpeningStatsSchema,
-    KeyResponsibilityItemSchema
+    KeyResponsibilityItemSchema,
+    JobApplicationCreateSchema,
+    JobApplicationUpdateSchema,
+    JobApplicationResponseSchema,
+    JobApplicationListResponseSchema,
+    JobApplicationStatsSchema,
+    JobApplicationStatusUpdateSchema
 )
 from app.services.auth import get_current_user_dependency
 from app.enum import UserRoles
@@ -552,3 +558,350 @@ async def advanced_search_jobs(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error in advanced search: {str(e)}"
         )
+
+# Job Application APIs
+
+@router.post("/applications/", response_model=JobApplicationResponseSchema, status_code=status.HTTP_201_CREATED)
+async def create_job_application(application_data: JobApplicationCreateSchema):
+    """
+    Create a new job application (Public endpoint)
+    """
+    try:
+        # Validate that if applying for available jobs, a job_id is provided
+        if application_data.apply_for_available_jobs and not application_data.selected_job_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Job ID is required when applying for available jobs"
+            )
+        
+        # If applying for specific job, verify job exists and is active
+        if application_data.apply_for_available_jobs and application_data.selected_job_id:
+            job = JobOpening.objects(job_id=application_data.selected_job_id, is_active="Active").first()
+            if not job:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Job with ID '{application_data.selected_job_id}' not found or not active"
+                )
+        
+        # Check if user already applied for the same job (if applying for specific job)
+        if application_data.apply_for_available_jobs and application_data.selected_job_id:
+            existing_application = JobApplication.objects(
+                email=application_data.email,
+                selected_job_id=application_data.selected_job_id
+            ).first()
+            if existing_application:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="You have already applied for this job"
+                )
+        
+        # Create new application
+        new_application = JobApplication(
+            apply_for_available_jobs=application_data.apply_for_available_jobs,
+            selected_job_id=application_data.selected_job_id,
+            title=application_data.title,
+            first_name=application_data.first_name,
+            surname=application_data.surname,
+            phone_number=application_data.phone_number,
+            email=application_data.email,
+            street_address=application_data.street_address,
+            street_address_line2=application_data.street_address_line2,
+            city=application_data.city,
+            state_province=application_data.state_province,
+            postal_zip_code=application_data.postal_zip_code,
+            highest_education=application_data.highest_education,
+            total_experience_years=application_data.total_experience_years,
+            current_last_employer=application_data.current_last_employer,
+            current_last_designation=application_data.current_last_designation,
+            cv_filename=application_data.cv_filename,
+            cv_data=application_data.cv_data,
+            cv_size=application_data.cv_size
+        )
+        
+        new_application.save()
+        
+        return JobApplicationResponseSchema(
+            id=str(new_application.id),
+            apply_for_available_jobs=new_application.apply_for_available_jobs,
+            selected_job_id=new_application.selected_job_id,
+            title=new_application.title,
+            first_name=new_application.first_name,
+            surname=new_application.surname,
+            phone_number=new_application.phone_number,
+            email=new_application.email,
+            street_address=new_application.street_address,
+            street_address_line2=new_application.street_address_line2,
+            city=new_application.city,
+            state_province=new_application.state_province,
+            postal_zip_code=new_application.postal_zip_code,
+            highest_education=new_application.highest_education,
+            total_experience_years=new_application.total_experience_years,
+            current_last_employer=new_application.current_last_employer,
+            current_last_designation=new_application.current_last_designation,
+            cv_filename=new_application.cv_filename,
+            cv_data=new_application.cv_data,
+            cv_size=new_application.cv_size,
+            status=new_application.status,
+            created_at=new_application.created_at,
+            updated_at=new_application.updated_at
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating job application: {str(e)}"
+        )
+
+@router.get("/applications/", response_model=JobApplicationListResponseSchema)
+async def get_job_applications(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
+    status: Optional[str] = Query(None, description="Filter by application status"),
+    job_id: Optional[str] = Query(None, description="Filter by job ID"),
+    current_user = Depends(get_current_user_dependency)
+):
+    """
+    Get job applications (Admin only)
+    """
+    try:
+        # Check if user has admin permissions
+        if not validate_user_permissions(current_user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administrators can view job applications"
+            )
+        
+        # Build query filters
+        query_filters = {}
+        
+        if status:
+            valid_statuses = ["Pending", "Under Review", "Shortlisted", "Rejected", "Hired"]
+            if status in valid_statuses:
+                query_filters['status'] = status
+        
+        if job_id:
+            query_filters['selected_job_id'] = job_id
+        
+        # Calculate pagination
+        skip = (page - 1) * limit
+        
+        # Get applications with filters
+        applications_query = JobApplication.objects(**query_filters)
+        total_applications = applications_query.count()
+        
+        applications = applications_query.skip(skip).limit(limit).order_by('-created_at')
+        
+        # Convert to response format
+        application_list = []
+        for app in applications:
+            application_list.append(JobApplicationResponseSchema(
+                id=str(app.id),
+                apply_for_available_jobs=app.apply_for_available_jobs,
+                selected_job_id=app.selected_job_id,
+                title=app.title,
+                first_name=app.first_name,
+                surname=app.surname,
+                phone_number=app.phone_number,
+                email=app.email,
+                street_address=app.street_address,
+                street_address_line2=app.street_address_line2,
+                city=app.city,
+                state_province=app.state_province,
+                postal_zip_code=app.postal_zip_code,
+                highest_education=app.highest_education,
+                total_experience_years=app.total_experience_years,
+                current_last_employer=app.current_last_employer,
+                current_last_designation=app.current_last_designation,
+                cv_filename=app.cv_filename,
+                cv_data=app.cv_data,
+                cv_size=app.cv_size,
+                status=app.status,
+                created_at=app.created_at,
+                updated_at=app.updated_at
+            ))
+        
+        return JobApplicationListResponseSchema(
+            applications=application_list,
+            total=total_applications,
+            page=page,
+            limit=limit
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching job applications: {str(e)}"
+        )
+
+@router.get("/applications/{application_id}", response_model=JobApplicationResponseSchema)
+async def get_job_application(
+    application_id: str,
+    current_user = Depends(get_current_user_dependency)
+):
+    """
+    Get a specific job application (Admin only)
+    """
+    try:
+        # Check if user has admin permissions
+        if not validate_user_permissions(current_user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administrators can view job applications"
+            )
+        
+        # Find the application
+        application = JobApplication.objects(id=application_id).first()
+        
+        if not application:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job application not found"
+            )
+        
+        return JobApplicationResponseSchema(
+            id=str(application.id),
+            apply_for_available_jobs=application.apply_for_available_jobs,
+            selected_job_id=application.selected_job_id,
+            title=application.title,
+            first_name=application.first_name,
+            surname=application.surname,
+            phone_number=application.phone_number,
+            email=application.email,
+            street_address=application.street_address,
+            street_address_line2=application.street_address_line2,
+            city=application.city,
+            state_province=application.state_province,
+            postal_zip_code=application.postal_zip_code,
+            highest_education=application.highest_education,
+            total_experience_years=application.total_experience_years,
+            current_last_employer=application.current_last_employer,
+            current_last_designation=application.current_last_designation,
+            cv_filename=application.cv_filename,
+            cv_data=application.cv_data,
+            cv_size=application.cv_size,
+            status=application.status,
+            created_at=application.created_at,
+            updated_at=application.updated_at
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching job application: {str(e)}"
+        )
+
+@router.delete("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_job_application(
+    application_id: str,
+    current_user = Depends(get_current_user_dependency)
+):
+    """
+    Delete a job application (Admin only)
+    """
+    try:
+        # Check if user has admin permissions
+        if not validate_user_permissions(current_user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administrators can delete job applications"
+            )
+        
+        # Find the application
+        application = JobApplication.objects(id=application_id).first()
+        
+        if not application:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job application not found"
+            )
+        
+        # Delete the application
+        application.delete()
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting job application: {str(e)}"
+        )
+
+@router.patch("/applications/{application_id}/status", response_model=JobApplicationResponseSchema)
+async def update_application_status(
+    application_id: str,
+    status_data: JobApplicationStatusUpdateSchema,
+    current_user = Depends(get_current_user_dependency)
+):
+    """
+    Update application status (Admin only)
+    """
+    try:
+        # Check if user has admin permissions
+        if not validate_user_permissions(current_user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administrators can update application status"
+            )
+        
+        new_status = status_data.status
+        valid_statuses = ["Pending", "Under Review", "Shortlisted", "Rejected", "Hired"]
+        
+        if new_status not in valid_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+            )
+        
+        # Find the application
+        application = JobApplication.objects(id=application_id).first()
+        
+        if not application:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job application not found"
+            )
+        
+        # Update status
+        application.status = new_status
+        application.save()
+        
+        return JobApplicationResponseSchema(
+            id=str(application.id),
+            apply_for_available_jobs=application.apply_for_available_jobs,
+            selected_job_id=application.selected_job_id,
+            title=application.title,
+            first_name=application.first_name,
+            surname=application.surname,
+            phone_number=application.phone_number,
+            email=application.email,
+            street_address=application.street_address,
+            street_address_line2=application.street_address_line2,
+            city=application.city,
+            state_province=application.state_province,
+            postal_zip_code=application.postal_zip_code,
+            highest_education=application.highest_education,
+            total_experience_years=application.total_experience_years,
+            current_last_employer=application.current_last_employer,
+            current_last_designation=application.current_last_designation,
+            cv_filename=application.cv_filename,
+            cv_data=application.cv_data,
+            cv_size=application.cv_size,
+            status=application.status,
+            created_at=application.created_at,
+            updated_at=application.updated_at
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating application status: {str(e)}"
+        )
+
