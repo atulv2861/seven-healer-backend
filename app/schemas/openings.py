@@ -61,3 +61,104 @@ class JobOpeningStatsSchema(BaseModel):
     draft_jobs: int
     type_breakdown: dict
     company_breakdown: dict
+
+# Job Application Schemas
+class JobApplicationBaseSchema(BaseModel):
+    # Application Type
+    apply_for_available_jobs: bool = Field(..., description="True if applying for available jobs, False for future jobs")
+    selected_job_id: Optional[str] = Field(None, max_length=20, description="Job ID if applying for specific job")
+    
+    # Personal Information
+    title: str = Field(..., max_length=10, description="Title (Mr., Mrs., Dr., etc.)")
+    first_name: str = Field(..., max_length=100, description="First name")
+    surname: str = Field(..., max_length=100, description="Surname")
+    phone_number: str = Field(..., max_length=15, description="Phone number")
+    email: str = Field(..., max_length=255, description="Email address")
+    
+    # Address Information
+    street_address: str = Field(..., max_length=200, description="Street address")
+    street_address_line2: Optional[str] = Field(None, max_length=200, description="Street address line 2")
+    city: str = Field(..., max_length=100, description="City")
+    state_province: str = Field(..., max_length=100, description="State or Province")
+    postal_zip_code: str = Field(..., max_length=20, description="Postal or Zip code")
+    
+    # Professional Information
+    highest_education: str = Field(..., max_length=200, description="Highest educational qualification")
+    total_experience_years: str = Field(..., max_length=10, description="Total years of experience")
+    current_last_employer: str = Field(..., max_length=200, description="Current or last employer")
+    current_last_designation: str = Field(..., max_length=200, description="Current or last designation")
+    
+    # CV Upload
+    cv_filename: Optional[str] = Field(None, max_length=255, description="CV filename")
+    cv_data: Optional[str] = Field(None, description="Base64 encoded CV data")
+    cv_size: Optional[str] = Field(None, max_length=20, description="CV file size")
+
+class JobApplicationCreateSchema(JobApplicationBaseSchema):
+    pass
+
+class JobApplicationUpdateSchema(BaseModel):
+    # Application Type
+    apply_for_available_jobs: Optional[bool] = Field(None)
+    selected_job_id: Optional[str] = Field(None, max_length=20)
+    
+    # Personal Information
+    title: Optional[str] = Field(None, max_length=10)
+    first_name: Optional[str] = Field(None, max_length=100)
+    surname: Optional[str] = Field(None, max_length=100)
+    phone_number: Optional[str] = Field(None, max_length=15)
+    email: Optional[str] = Field(None, max_length=255)
+    
+    # Address Information
+    street_address: Optional[str] = Field(None, max_length=200)
+    street_address_line2: Optional[str] = Field(None, max_length=200)
+    city: Optional[str] = Field(None, max_length=100)
+    state_province: Optional[str] = Field(None, max_length=100)
+    postal_zip_code: Optional[str] = Field(None, max_length=20)
+    
+    # Professional Information
+    highest_education: Optional[str] = Field(None, max_length=200)
+    total_experience_years: Optional[str] = Field(None, max_length=10)
+    current_last_employer: Optional[str] = Field(None, max_length=200)
+    current_last_designation: Optional[str] = Field(None, max_length=200)
+    
+    # CV Upload
+    cv_filename: Optional[str] = Field(None, max_length=255)
+    cv_data: Optional[str] = Field(None)
+    cv_size: Optional[str] = Field(None, max_length=20)
+    
+    # Status (Admin only)
+    status: Optional[str] = Field(None, description="Application status")
+
+class JobApplicationResponseSchema(JobApplicationBaseSchema):
+    id: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class JobApplicationListResponseSchema(BaseModel):
+    applications: List[JobApplicationResponseSchema]
+    total: int
+    page: int
+    limit: int
+
+class JobApplicationStatsSchema(BaseModel):
+    total_applications: int
+    pending_applications: int
+    under_review_applications: int
+    shortlisted_applications: int
+    rejected_applications: int
+    hired_applications: int
+    applications_by_job: dict
+
+class JobApplicationStatusUpdateSchema(BaseModel):
+    status: str = Field(..., description="New application status")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": "Under Review"
+            }
+        }
